@@ -1,0 +1,8 @@
+---
+__mythic_required_facts:
+  - machine_id
+  - pkg_mgr
+
+__mythic_packages:
+  - make
+  - git

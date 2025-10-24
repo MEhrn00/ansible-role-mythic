@@ -1,0 +1,6 @@
+---
+- name: Restart Mythic # noqa: no-changed-when
+  ansible.builtin.command: "./mythic-cli restart"
+  args:
+    chdir: "{{ mythic_install_path }}"
+  listen: __mythic_restart_handler

@@ -1,0 +1,81 @@
+---
+argument_specs:
+  main:
+    short_description: Installs and configures Mythic C2 server
+    options:
+      mythic_admin_username:
+        type: "str"
+        description: "Username for the Mythic admin user"
+        default: "mythic_admin"
+
+      mythic_admin_password:
+        type: "str"
+        required: false
+        description: "Password for the Mythic admin user"
+
+      mythic_repo:
+        type: "str"
+        description: "URL of the Mythic git repository"
+        default: "https://github.com/its-a-feature/Mythic.git"
+
+      mythic_version:
+        type: "str"
+        required: false
+        description: "Mythic version to checkout"
+
+      mythic_shallow_clone:
+        type: "bool"
+        description: "Do a shallow git clone of Mythic"
+        default: true
+
+      mythic_operation_name:
+        type: "str"
+        description: "Name of the default operation"
+        default: "Operation Chimera"
+
+      mythic_install_path:
+        type: "str"
+        description: "Path to install Mythic"
+        default: "/opt/Mythic"
+
+      mythic_config:
+        type: "dict"
+        description: "Extra configuration values to set"
+        default: {}
+
+      mythic_services:
+        type: "list"
+        elements: "dict"
+        description: "Mythic services to install"
+        default: []
+        options:
+          name:
+            type: "str"
+            description: "Name of the installed service"
+            required: false
+
+          repo:
+            type: "str"
+            required: true
+            description: "Git repository of the service"
+
+          version:
+            type: "str"
+            required: false
+            description: "Version of the service to install"
+
+          force:
+            type: "bool"
+            description: "Force install the service"
+            default: true
+
+          state:
+            type: "str"
+            choices:
+              - "present"
+              - "started"
+              - "restarted"
+              - "stopped"
+              - "absent"
+            description: "Service state"
+            default: "present"

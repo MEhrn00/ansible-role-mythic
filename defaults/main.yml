@@ -1,0 +1,8 @@
+---
+mythic_admin_username: "mythic_admin"
+mythic_repo: "https://github.com/its-a-feature/Mythic.git"
+mythic_shallow_clone: true
+mythic_operation_name: "Operation Chimera"
+mythic_install_path: "/opt/Mythic"
+mythic_config: {}
+mythic_services: []

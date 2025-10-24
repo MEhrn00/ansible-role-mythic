@@ -1,0 +1,45 @@
+---
+- name: configure_mythic | Generate configuration file
+  ansible.builtin.command: ./mythic-cli config
+  args:
+    chdir: "{{ mythic_install_path }}"
+    creates: "{{ mythic_install_path }}/.env"
+  register: __mythic_config_generate
+  notify: __mythic_restart_handler
+
+- name: configure_mythic | Generate a random password for the Mythic admin user
+  ansible.builtin.set_fact:
+    mythic_admin_password: "{{ lookup('ansible.builtin.password', '/dev/null', seed=ansible_machine_id) }}"
+  when: mythic_admin_password is not defined
+
+- name: configure_mythic | Set Mythic configuration options
+  vars:
+    __mythic_config_option_value: |-
+      {%- if (__mythic_config_option.value | type_debug) == 'bool' -%}
+      {{ __mythic_config_option.value | string | lower }}
+      {%- elif (__mythic_config_option.value | type_debug) == 'list' -%}
+      {{ __mythic_config_option.value | join(',') }}
+      {%- else -%}
+      {{ __mythic_config_option.value }}
+      {%- endif -%}
+  ansible.builtin.lineinfile:
+    path: "{{ mythic_install_path }}/.env"
+    regexp: "^{{ __mythic_config_option.key }}="
+    line: '{{ __mythic_config_option.key }}="{{ __mythic_config_option_value }}"'
+  loop: >-
+    {{
+      dict(
+        mythic_config.keys() | map('upper')
+        | zip(mythic_config.values())
+      )
+      | combine({
+        'MYTHIC_ADMIN_USER': mythic_admin_username,
+        'MYTHIC_ADMIN_PASSWORD': mythic_admin_password,
+        'DEFAULT_OPERATION_NAME': mythic_operation_name
+      })
+      | dict2items
+    }}
+  loop_control:
+    loop_var: __mythic_config_option
+    label: "{{ __mythic_config_option.key }}"
+  notify: __mythic_restart_handler

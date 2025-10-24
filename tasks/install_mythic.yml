@@ -1,0 +1,19 @@
+---
+- name: install_mythic | Install Mythic system package dependencies
+  ansible.builtin.package:
+    name: "{{ __mythic_packages }}"
+    state: present
+
+- name: install_mythic | Clone Mythic git repository
+  ansible.builtin.git:
+    repo: "{{ mythic_repo }}"
+    dest: "{{ mythic_install_path }}"
+    version: "{{ mythic_version | default(omit) }}"
+    depth: "{{ mythic_shallow_clone | ternary(1, omit) }}"
+  notify: __mythic_restart_handler
+
+- name: install_mythic | Compile mythic-cli
+  ansible.builtin.command: make
+  args:
+    chdir: "{{ mythic_install_path }}"
+    creates: "{{ mythic_install_path }}/mythic-cli"

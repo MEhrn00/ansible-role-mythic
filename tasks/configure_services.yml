@@ -1,0 +1,108 @@
+---
+- name: configure_services | Install Mythic services
+  vars:
+    __mythic_service_version: "{{ __mythic_service.version | default('') }}"
+    __mythic_service_force: "{{ __mythic_service.force | default(false) }}"
+    __mythic_service_state: "{{ __mythic_service.state | default('present') }}"
+    __mythic_service_name: >-
+      {{
+        __mythic_service.name
+        | default(__mythic_service.repo
+          | regex_search('/(?P<name>[^/\.]+)(\.git)?$', '\g<name>')
+          | first | lower
+        )
+      }}
+  ansible.builtin.command: >-
+    ./mythic-cli install github
+    {{ __mythic_service.repo }} {{ __mythic_service_version }}
+    {{ __mythic_service_force | ternary('-f', '') }}
+  args:
+    chdir: "{{ mythic_install_path }}"
+    creates: "{{ mythic_install_path + '/InstalledServices/' + __mythic_service_name }}"
+  loop: "{{ mythic_services }}"
+  loop_control:
+    loop_var: __mythic_service
+  when:
+    - mythic_services | list | length > 0
+    - __mythic_service_state == "present"
+
+- name: configure_services | Start Mythic services # noqa: no-changed-when
+  vars:
+    __mythic_service_name: >-
+      {{
+        __mythic_service.name
+        | default(__mythic_service.repo
+          | regex_search('/(?P<name>[^/\.]+)(\.git)?$', '\g<name>')
+          | first | lower
+        )
+      }}
+  ansible.builtin.command: "./mythic-cli start {{ __mythic_service_name }}"
+  args:
+    chdir: "{{ mythic_install_path }}"
+  loop: "{{ mythic_services }}"
+  loop_control:
+    loop_var: __mythic_service
+  when:
+    - mythic_services | list | length > 0
+    - (__mythic_service.state | default('present')) == "started"
+
+- name: configure_services | Restart Mythic services # noqa: no-changed-when
+  vars:
+    __mythic_service_name: >-
+      {{
+        __mythic_service.name
+        | default(__mythic_service.repo
+          | regex_search('/(?P<name>[^/\.]+)(\.git)?$', '\g<name>')
+          | first | lower
+        )
+      }}
+  ansible.builtin.command: "./mythic-cli restart {{ __mythic_service_name }}"
+  args:
+    chdir: "{{ mythic_install_path }}"
+  loop: "{{ mythic_services }}"
+  loop_control:
+    loop_var: __mythic_service
+  when:
+    - mythic_services | list | length > 0
+    - (__mythic_service.state | default('present')) == "restarted"
+
+- name: configure_services | Stop Mythic services # noqa: no-changed-when
+  vars:
+    __mythic_service_name: >-
+      {{
+        __mythic_service.name
+        | default(__mythic_service.repo
+          | regex_search('/(?P<name>[^/\.]+)(\.git)?$', '\g<name>')
+          | first | lower
+        )
+      }}
+  ansible.builtin.command: "./mythic-cli stop {{ __mythic_service_name }}"
+  args:
+    chdir: "{{ mythic_install_path }}"
+  loop: "{{ mythic_services }}"
+  loop_control:
+    loop_var: __mythic_service
+  when:
+    - mythic_services | list | length > 0
+    - (__mythic_service.state | default('present')) == "stopped"
+
+- name: configure_services | Uninstall Mythic services
+  vars:
+    __mythic_service_name: >-
+      {{
+        __mythic_service.name
+        | default(__mythic_service.repo
+          | regex_search('/(?P<name>[^/\.]+)(\.git)?$', '\g<name>')
+          | first | lower
+        )
+      }}
+  ansible.builtin.command: "./mythic-cli uninstall {{ __mythic_service_name }}"
+  args:
+    chdir: "{{ mythic_install_path }}"
+    removes: "{{ mythic_install_path + '/InstalledServices/' + __mythic_service_name }}"
+  loop: "{{ mythic_services }}"
+  loop_control:
+    loop_var: __mythic_service
+  when:
+    - mythic_services | list | length > 0
+    - (__mythic_service.state | default('present')) == "absent"

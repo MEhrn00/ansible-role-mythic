@@ -1,0 +1,15 @@
+---
+- name: Ensure ansible_facts used by role
+  ansible.builtin.setup:
+    gather_subset: "{{ __mythic_required_facts }}"
+  when: not ansible_facts.keys() | list |
+    intersect(__mythic_required_facts) == __mythic_required_facts
+
+- name: Install Mythic
+  ansible.builtin.include_tasks: install_mythic.yml
+
+- name: Configure Mythic
+  ansible.builtin.include_tasks: configure_mythic.yml
+
+- name: Setup Mythic services
+  ansible.builtin.include_tasks: configure_services.yml
